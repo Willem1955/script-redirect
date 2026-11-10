@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Download</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #f3f3f3;
+      font-family: Arial, sans-serif;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+
+    canvas {
+      display: block;
+      width: 520px;
+      height: 520px;
+      max-width: 90vw;
+      background: white;
+      border-radius: 18px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 22px;
+      border: none;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <canvas id="qrCanvas" width="800" height="800"></canvas>
+    <br />
+    <button id="downloadBtn">Download PNG</button>
+  </div>
+
+  <script>
+    const targetUrl = "https://github.com/Willem1955/script-redirect";
+
+    // Save your logo as logo.png in the same folder as this HTML file
+    const logo = new Image();
+    logo.src = "logo.png";
+
+    const qrUrl = "https://quickchart.io/qr?text=" +
+      encodeURIComponent(targetUrl) +
+      "&size=800&margin=10";
+
+    const canvas = document.getElementById("qrCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function roundedRect(x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + w - radius, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+      ctx.lineTo(x + w, y + h - radius);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+      ctx.lineTo(x + radius, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    function drawQR() {
+      const qr = new Image();
+      qr.crossOrigin = "anonymous";
+      qr.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // white background
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // draw QR
+        ctx.drawImage(qr, 0, 0, canvas.width, canvas.height);
+
+        // draw logo in center
+        logo.onload = () => {
+          const logoSize = 150;
+          const x = (canvas.width - logoSize) / 2;
+          const y = (canvas.height - logoSize) / 2;
+
+          ctx.fillStyle = "#ffffff";
+          roundedRect(x - 14, y - 14, logoSize + 28, logoSize + 28, 28);
+          ctx.fill();
+
+          ctx.drawImage(logo, x, y, logoSize, logoSize);
+        };
+
+        if (logo.complete) {
+          logo.onload();
+        }
+      };
+      qr.src = qrUrl;
+    }
+
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = "script-redirect-qr.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+
+    drawQR();
+  </script>
+</body>
+</html>
